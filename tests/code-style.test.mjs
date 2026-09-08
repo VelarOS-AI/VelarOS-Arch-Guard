@@ -111,3 +111,45 @@ test('team-language rule exempts public API JSDoc but not implementation comment
   })
   assert.equal(strict.length, 2)
 })
+
+test('team-language comments ignore literal text around template substitutions, regexes and JSX', async () => {
+  const rootDir = temporaryProject({
+    'src/literals.tsx': [
+      'const value = "selected";',
+      'const url = `Use ${value} from https://example.com/download and refresh the command environment.`;',
+      'const shell = `p=$(command -v ${value}); case "$p" in /*) printf "This shell text is not a source comment" ;; esac`;',
+      'const nested = `${`inner ${value} https://example.com/this is only literal text`} suffix /* this remains literal template prose */`;',
+      'const pattern = /[/*] this regular expression text is not a comment [*/]/;',
+      'const view = <p>https://example.com/this is literal rendered text</p>;',
+      'const spaced = <p>\n  <b>text</b>\n</p>;',
+    ].join('\n'),
+  })
+  assert.deepEqual(await runChecks(rootDir, [requireChineseComments]), [])
+})
+
+test('team-language comments still inspect interpolation code and comments after literal boundaries', async () => {
+  const rootDir = temporaryProject({
+    'src/comments.ts': [
+      'const value = `start ${',
+      '  // This explanatory comment belongs to the interpolation expression.',
+      '  42',
+      '} https://example.com/this remains literal template prose`;',
+      '// This explanatory comment follows the completed template expression.',
+      'const pattern = /[/*] this is literal regular expression text [*/]/;',
+      '/* This explanatory comment follows the completed regular expression. */',
+    ].join('\n'),
+  })
+  const violations = await runChecks(rootDir, [requireChineseComments])
+  assert.deepEqual(violations.map((entry) => entry.line), [2, 5, 7])
+})
+
+test('team-language literal skipping preserves the optional prose string rule', async () => {
+  const rootDir = temporaryProject({
+    'src/strings.ts': 'const explanation = "This explanatory string still needs the configured language.";',
+  })
+  const violations = await runChecks(rootDir, [requireChineseComments], {
+    'code-style/require-chinese-comments': { scanStrings: true },
+  })
+  assert.equal(violations.length, 1)
+  assert.match(violations[0].ruleId, /string/u)
+})

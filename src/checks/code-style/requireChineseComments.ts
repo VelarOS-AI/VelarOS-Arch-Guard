@@ -59,6 +59,21 @@ function scanComments(
   section: CheckReportSection,
   exemptPositions: ReadonlySet<number>
 ): void {
+  // 裸 scanner 不会恢复模板插值后的文本模式，也无法独立区分正则与除法。
+  // 复用已解析 AST 的字面量边界，只跳过文本 token，插值表达式中的真实注释照常扫描。
+  const literalEnds = new Map<number, number>()
+  walk(sourceFile, (node) => {
+    if (
+      ts.isStringLiteralLike(node) ||
+      ts.isTemplateLiteralToken(node) ||
+      ts.isRegularExpressionLiteral(node) ||
+      ts.isJsxText(node)
+    ) {
+      // JSX 空白文本的 getStart() 会落在 end；使用原始起点并排除缺失的零宽 token。
+      const start = ts.isJsxText(node) ? node.pos : node.getStart(sourceFile)
+      if (node.end > start) literalEnds.set(start, node.end)
+    }
+  })
   const scanner = ts.createScanner(
     ts.ScriptTarget.Latest,
     /* skipTrivia */ false,
@@ -66,6 +81,11 @@ function scanComments(
     sourceFile.text
   )
   while (scanner.scan() !== ts.SyntaxKind.EndOfFileToken) {
+    const literalEnd = literalEnds.get(scanner.getTokenPos())
+    if (literalEnd !== undefined) {
+      scanner.setTextPos(literalEnd)
+      continue
+    }
     const token = scanner.getToken()
     if (token !== ts.SyntaxKind.SingleLineCommentTrivia && token !== ts.SyntaxKind.MultiLineCommentTrivia) {
       continue
