@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.1 — 2026-09-13
+
+### Changed
+
+- `code-style/forbid-single-property-conditional-spread` now reports every single-property
+  conditional spread, not only the ones it can rewrite. 0.3.0 reported a site only when it had an
+  autofix (`x ? { x } : {}`, `isString(x) ? { k: x } : {}`), so the inverted form
+  `...(isUndefined(v) ? {} : { k: v })`, `&&` spreads and ordinary conditions passed silently.
+  It now covers both branch orders, `...(cond && { k: v })`, `undefined` / `null` as the empty
+  branch, and JSX spread attributes. Consumers on `^0.3.0` will see new violations after upgrading.
+- The autofix only rewrites forms whose value is unchanged: `isUndefined` / `=== undefined`
+  families become `k: v`, `isPresent` / `!= null` / `isNull` families become `k: toOptional(v)`,
+  type-guard self conditions become `k: optionalWhen(isX, v)`. It no longer rewrites truthiness
+  self conditions (`v ? { k: v } : {}` → `toOptional(v)` turned a dropped `''` / `0` / `false` into a
+  written value) and never fixes a spread that follows another spread in the same literal (a plain
+  field would overwrite the spread value with `undefined`), computed keys, spreads with type
+  assertions or comments. Every report says what to write instead.
+
+### Fixed
+
+- `dist/` for `code-style/require-chinese-comments` was stale after the previous source fix.
+
 ## 0.3.0 — 2026-08-01
 
 Baseline integrity. The ratchet could previously both under- and over-report, and the read-only
