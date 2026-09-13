@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2 — 2026-09-13
+
+### Fixed
+
+- `code-style/require-chinese-comments` no longer flags Chinese comments that mention many
+  technical terms. Since 0.3.1 scans comments after template literals and regexes correctly, long
+  Chinese JSDoc blocks were being judged by their total English word count (≥ 10). Mixed text is now
+  English prose only when it contains a run of at least six consecutive plain English words;
+  identifiers (`read_file`, `project:read`, camelCase, ALL_CAPS), slash-separated lists and Chinese
+  text break the run. Comments without Chinese keep the old five-word rule.
+
 ## 0.3.1 — 2026-09-13
 
 ### Changed
