@@ -1,1 +1,1 @@
-{"version":3,"file":"requireChineseComments.d.ts","sourceRoot":"","sources":["../../../src/checks/code-style/requireChineseComments.ts"],"names":[],"mappings":"AAWA;;;;;;;;;;;;;;GAcG;AACH,QAAA,MAAM,sBAAsB,uBA2B1B,CAAA;AAwOF,OAAO,EAAE,sBAAsB,EAAE,CAAA"}
+{"version":3,"file":"requireChineseComments.d.ts","sourceRoot":"","sources":["../../../src/checks/code-style/requireChineseComments.ts"],"names":[],"mappings":"AAWA;;;;;;;;;;;;;;GAcG;AACH,QAAA,MAAM,sBAAsB,uBA2B1B,CAAA;AA4PF,OAAO,EAAE,sBAAsB,EAAE,CAAA"}

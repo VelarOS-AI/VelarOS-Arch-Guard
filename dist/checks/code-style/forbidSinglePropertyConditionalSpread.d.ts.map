@@ -1,1 +1,1 @@
-{"version":3,"file":"forbidSinglePropertyConditionalSpread.d.ts","sourceRoot":"","sources":["../../../src/checks/code-style/forbidSinglePropertyConditionalSpread.ts"],"names":[],"mappings":"AAeA;;;;;;;GAOG;AACH,QAAA,MAAM,qCAAqC,uBAkCzC,CAAA;AAyHF,OAAO,EAAE,qCAAqC,EAAE,CAAA"}
+{"version":3,"file":"forbidSinglePropertyConditionalSpread.d.ts","sourceRoot":"","sources":["../../../src/checks/code-style/forbidSinglePropertyConditionalSpread.ts"],"names":[],"mappings":"AAQA;;;;;;;;;;;;;;;;;;;;;GAqBG;AACH,QAAA,MAAM,qCAAqC,uBAuCzC,CAAA;AAsbF,OAAO,EAAE,qCAAqC,EAAE,CAAA"}
