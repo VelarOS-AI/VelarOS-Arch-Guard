@@ -5,7 +5,8 @@
  *   - 全大写常量名（XXX_YYY）不算
  *   - 单 token、像路径/标识符/版本号的不算
  *   - 至少要有 ENGLISH_PROSE_WORD_THRESHOLD 个英文 word（> 1 字符）
- *   - 如果同时含中文，要更宽松（MIXED_TEXT_ENGLISH_WORD_THRESHOLD）才报，避免把中文段里的英文术语误伤
+ *   - 如果同时含中文，只有出现连续 MIXED_TEXT_ENGLISH_RUN_THRESHOLD 个英文 word 的整句英文才报：
+ *     中文段里零散的技术词（args、truncate、payload…）再多也不算，长中文注释不会因为术语多而误伤
  *
  * 跳过 module specifier、property name、纯类型上下文的字符串字面量。
  *

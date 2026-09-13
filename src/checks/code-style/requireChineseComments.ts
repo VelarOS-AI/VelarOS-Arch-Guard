@@ -7,7 +7,12 @@ import { collectChineseTextFiles, getCachedSourceFile, walk } from './_shared'
 const EnglishWordPattern = /[A-Za-z][A-Za-z'-]*/g
 const CjkTextPattern = /[\u3400-\u9FFF]/
 const EnglishProseWordThreshold = 5
-const MixedTextEnglishWordThreshold = 10
+const MixedTextEnglishRunThreshold = 6
+/**
+ * 一个「散文词」：字母开头、其余小写（允许撇号/连字符），可带一个句读标点。
+ * 标识符（下划线、冒号、点、数字、驼峰、全大写）、中文、斜杠列表都不是散文词，会打断连续计数。
+ */
+const EnglishProseTokenPattern = /^[A-Za-z][a-z'-]*[,.;:!?]?$/u
 
 /**
  * 注释和散文式字符串说明文案要求使用团队语言（默认中文）。
@@ -16,7 +21,8 @@ const MixedTextEnglishWordThreshold = 10
  *   - 全大写常量名（XXX_YYY）不算
  *   - 单 token、像路径/标识符/版本号的不算
  *   - 至少要有 ENGLISH_PROSE_WORD_THRESHOLD 个英文 word（> 1 字符）
- *   - 如果同时含中文，要更宽松（MIXED_TEXT_ENGLISH_WORD_THRESHOLD）才报，避免把中文段里的英文术语误伤
+ *   - 如果同时含中文，只有出现连续 MIXED_TEXT_ENGLISH_RUN_THRESHOLD 个英文 word 的整句英文才报：
+ *     中文段里零散的技术词（args、truncate、payload…）再多也不算，长中文注释不会因为术语多而误伤
  *
  * 跳过 module specifier、property name、纯类型上下文的字符串字面量。
  *
@@ -213,7 +219,23 @@ function isEnglishProse(value: string): boolean {
   if (!proseText) return false
   const wordCount = countEnglishWords(proseText)
   if (wordCount < EnglishProseWordThreshold) return false
-  return CjkTextPattern.test(proseText) ? wordCount >= MixedTextEnglishWordThreshold : true
+  if (!CjkTextPattern.test(proseText)) return true
+  return longestEnglishRun(proseText) >= MixedTextEnglishRunThreshold
+}
+
+/** 混排文本里最长的一段连续英文散文有几个词（按空白切词；单字母词不计数也不打断）。 */
+function longestEnglishRun(value: string): number {
+  let longest = 0
+  let current = 0
+  for (const token of value.split(/\s+/u)) {
+    if (!EnglishProseTokenPattern.test(token)) {
+      current = 0
+      continue
+    }
+    if (token.replace(/[,.;:!?]$/u, '').length > 1) current += 1
+    longest = Math.max(longest, current)
+  }
+  return longest
 }
 
 function countEnglishWords(value: string): number {

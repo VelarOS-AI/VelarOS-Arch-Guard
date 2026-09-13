@@ -153,3 +153,31 @@ test('team-language literal skipping preserves the optional prose string rule', 
   assert.equal(violations.length, 1)
   assert.match(violations[0].ruleId, /string/u)
 })
+
+test('team-language mixed comments count consecutive English, not scattered terms', async () => {
+  const rootDir = temporaryProject({
+    'src/mixed.ts': [
+      '/**',
+      ' * 将工具 args、displayResult、serialized 等任意值转为可搜索的字符串。',
+      ' *',
+      ' * - 已是 string：直接 truncate',
+      ' * - stringify 抛错：debug 日志降级',
+      ' *',
+      ' * @param value 工具 payload 字段、消息 block 等',
+      ' */',
+      'function stringifyPayload(value: unknown): string {',
+      '  // 回退顺序：先 cache 再 fetch，最后才 retry。',
+      '  // 这里保留原句：Token estimation falls back to a deterministic char heuristic.',
+      '  return String(value)',
+      '}',
+      'export const run = stringifyPayload',
+      '',
+    ].join('\n'),
+  })
+  const violations = await runChecks(rootDir, [requireChineseComments])
+  assert.deepEqual(
+    violations.map((violation) => violation.line),
+    [11],
+    '中文段里零散的技术词不算英文说明；夹着一整句英文才报'
+  )
+})
